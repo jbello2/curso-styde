@@ -12,7 +12,8 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 class UsersModuleTest extends TestCase
 {
 
-	//Use RefreshDatabase;
+	// Use RefreshDatabase;
+    // $this->refreshDatabase();
 	
     /** @test   */
 
@@ -100,18 +101,80 @@ class UsersModuleTest extends TestCase
             'name'  => 'Jose Bello',
             'email' => 'jbello262@gmail.com',
             'password' => bcrypt(123456),
-        ])->assertRedirect('usuarios');
+        ])->assertRedirect('usuarios/nuevo');
 
         // ->assertSee('Procesando información...');
 
         $this->assertCredentials('users', [
-            'name' => 'Jose Bello',
+            'name'=> 'Jose Bello',
             'email' => 'jbello262@gmail.com',
             'password' => '123456',
-        ]);
+        ])
+            ->assertSee('El campo nombre es obligatorio');
 
     }
 
+    /** @test   */
     
+    function the_name_is_required(){
+
+       $this->from('/usuarios/nuevo')
+        ->post('/usuarios/', [
+            'name'  => '',
+            'email' => 'mpinate@gmail.com',
+            'password' => bcrypt(123456)
+        ])
+        ->assertRedirect('usuarios/nuevo')
+        ->assertSessionHasError(['name' => 'El campo nombre es obligatorio']);
+
+         $this->assertDatabaseMissing('users', [
+            'email' => 'mpinate@gmail.com',
+         ]);
+
+    }
+
+     /** @test   */
+
+    function it_loads_the_edit_user_page()
+    {
+       // $this->withoutExceptionHandling();
+
+        $user = factory(user::class)->create();
+
+        $this->get("/usuarios/{$user->id}/editar")
+            ->assertStatus(200)
+            ->assertViewIs('user.edit')
+            ->assertSee('Editar usuario')
+            ->assertViewHas('user', function ($viewUser) use ($user){
+                return $viewUser->id == $user->id;
+            });
+    }
+
+    /** @test   */
+
+    function it_update_a_user()
+    {
+        
+        $this->withoutExceptionHandling();
+
+        $user = factory(User::class)->create();
+
+        $this->put("/usuarios/{$user->id}", [
+
+            'name'  => 'Roxana Bello',
+            'email' => 'roxana@gmail.com',
+            'password' => bcrypt(123456),
+
+        ])->assertRedirect("/usuarios/{$user}");
+
+        $this->assertCredentials('user', [
+            'name'     => 'Roxana Bello',
+            'email'    => 'roxana@gmail.com',
+            'password' => 123456,
+        ]);
+            
+         //   ->assertSee('El campo nombre es obligatorio');
+
+    }
 
 }

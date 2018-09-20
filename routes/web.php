@@ -26,4 +26,8 @@ Route::get('/usuarios/nuevo', 'UserController@create')->name('user.create');
 
 Route::post('/usuarios/crear', 'UserController@store');
 
+Route::get('usuarios/{user}/editar',  'UserController@edit')->name('user.edit');
+
+Route::put('usuarios/{user}', 'UserController@update');
+
 Route::get('/saludo/{name}/{nickname?}', 'WellcomeUserController@index');

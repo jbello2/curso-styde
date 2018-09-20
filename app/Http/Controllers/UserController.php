@@ -46,10 +46,17 @@ class UserController extends Controller
     public function store()
     {
 
-        $data = request()->all();
-
-        // dd($data);
+        $data = request()->validate([
+            'name' => 'required',
+            'email' => ['required', 'email', 'unique:users,email' ],
+            'password' => 'required',
+        ], [
+            'name.required' => 'El campo nombre es obligatorio'
+        ]);
+        
+        
         if (empty($data['name'])) {
+            dd($data);
             return;
         }
 
@@ -61,6 +68,25 @@ class UserController extends Controller
 
         // return redirect()->route('user.index');
         // es igual a esta:
-        return redirect('usuarios');
+        return redirect()->route('users.index');
+    }
+
+    public function edit(User $user){
+
+        return view('user.edit', ['user' => $user]);
+
+    }
+
+    public function update(User $user){
+
+        $data = request()->all();
+        
+        $data['password'] = bcrypt($data['password']);
+        
+        $user->update($data);
+
+        return redirect("usuarios/{$user->id}");
+
+
     }
 }
